@@ -4,7 +4,3 @@ class Aluno():
         self.nome = nome
         self.tempoestudo = tempoestudo
         self.rendafamiliar = rendafamiliar
-
-        # programação orientada a objetos
-        # Classe --objeto---   Classe
-        # Tabela1 --pk  --fk   Tabela2
