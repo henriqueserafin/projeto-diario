@@ -27,14 +27,14 @@ CREATE TABLE diariobordo (
 
 ALTER TABLE avaliacao ADD CONSTRAINT FK_avaliacao_2
     FOREIGN KEY (fk_Aluno_id)
-    REFERENCES Aluno (id)
+    REFERENCES aluno (id)
     ON DELETE CASCADE;
 
 
 
 ALTER TABLE diariobordo ADD CONSTRAINT FK_avaliacao_3
     FOREIGN KEY (fk_Aluno_id)
-    REFERENCES Aluno (id)
+    REFERENCES aluno (id)
     ON DELETE CASCADE;
 
 
