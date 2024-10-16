@@ -236,5 +236,39 @@ def senia():
     
     return render_template("radio.html", mic_status=mic_status)
 
+@app.route('/sumarizar_diario/<int:diario_id>', methods=['POST'])
+def sumarizar_diario(diario_id):
+    session_db = Session()  # Criar uma nova sessão
+    translator = Translator()
+    try:
+        # Recuperar o diário de bordo pelo ID
+        diario = session_db.query(DiarioBordo).filter(DiarioBordo.id == diario_id).one_or_none()
+        if diario:
+            # Traduzir o texto do diário para inglês
+            texto_em_ingles = translator.translate(diario.texto, src='pt', dest='en').text
+            
+            # Sumarizar usando TextBlob (assumindo que o TextBlob funcione com textos em inglês)
+            blob = TextBlob(texto_em_ingles)
+            sumario_em_ingles = ' '.join([str(sent) for sent in blob.sentences[:3]])  # Pegando as 3 primeiras sentenças como resumo
+            
+            # Traduzir o sumário de volta para o português
+            sumario_em_portugues = translator.translate(sumario_em_ingles, src='en', dest='pt').text
+            
+            # Armazenar o sumário no diário
+            diario.sumario = sumario_em_portugues
+            session_db.commit()
+        else:
+            return "Diário de bordo não encontrado", 404
+    except Exception as e:
+        session_db.rollback()
+        print(f"Erro ao sumarizar diário: {e}")  # Captura de erro
+        return "Erro ao sumarizar diário", 500
+    finally:
+        session_db.close()
+
+    return redirect(url_for('detalhe_aluno', ra=diario.fk_Aluno_id))  # Redireciona para a página do aluno
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)

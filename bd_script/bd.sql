@@ -54,6 +54,7 @@ ADD tempoestudo int not null,
 ADD rendafamiliar decimal(10,2);
 
 
+ALTER TABLE diariobordo ADD sumario TEXT;
 
 
 select
