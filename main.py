@@ -7,6 +7,8 @@ from functools import wraps
 from datetime import datetime
 import urllib.parse
 import speech_recognition as sr
+from textblob import TextBlob
+from googletrans import Translator
 
 app = Flask(__name__)
 Bootstrap(app)

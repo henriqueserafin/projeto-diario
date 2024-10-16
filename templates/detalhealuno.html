@@ -24,12 +24,19 @@
                     {% for diario in diariobordo %}
                         <li class="list-group-item">
                             <strong>{{ diario.datahora.strftime('%d/%m/%Y %H:%M') }}</strong>: <br> {{ diario.texto }}
+                            <form action="{{ url_for('sumarizar_diario', diario_id=diario.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-primary btn-sm">Sumarizar</button>
+                            </form>
+                            {% if diario.sumario %}
+                                <br><strong>Sumário:</strong> {{ diario.sumario }}
+                            {% endif %}
                         </li>
                     {% endfor %}
                 {% else %}
                     <li class="list-group-item">Nenhuma entrada registrada.</li>
                 {% endif %}
             </ul>
+            
 
             <br>
 
