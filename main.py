@@ -16,7 +16,7 @@ app.secret_key = 'sua_chave_secreta'  # Defina uma chave secreta para usar a ses
 
 # Configuração do Banco de Dados
 user = 'root'
-password = urllib.parse.quote_plus('senai@123')
+password = urllib.parse.quote_plus('root')
 host = 'localhost'
 database = 'schooltracker'
 connection_string = f'mysql+pymysql://{user}:{password}@{host}/{database}'
