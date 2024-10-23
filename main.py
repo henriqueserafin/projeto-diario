@@ -277,41 +277,51 @@ import torch
 
 @app.route('/sumarizar_diario/<int:diario_id>', methods=['POST'])
 def sumarizar_diario(diario_id):
-    session_db = Session()  # Criar uma nova sessão
+    session_db = Session()  # Criar uma nova sessão para interagir com o banco de dados
     try:
-        # Recuperar o diário de bordo pelo ID
+        # Recuperar o diário de bordo pelo ID fornecido
         diario = session_db.query(DiarioBordo).filter(DiarioBordo.id == diario_id).one_or_none()
         if diario:
-            print(f"Texto do Diário: {diario.texto}")  # Verifica se o texto está sendo recuperado
+            print(f"Texto do Diário: {diario.texto}")  # Verifica se o texto do diário está sendo recuperado corretamente
             
-            # Traduzir e sumarizar aqui...
             # Traduzir o texto do diário para inglês usando deep-translator
+            # Isso é necessário porque a ferramenta de sumarização funciona melhor com textos em inglês
             texto_em_ingles = GoogleTranslator(source='pt', target='en').translate(diario.texto)
             
-            # Usar a biblioteca transformers para sumarizar o texto, verificando se a GPU está disponível
+            # Usar a biblioteca transformers para sumarizar o texto
+            # Verificar se uma GPU está disponível e definir o dispositivo adequadamente
             device = 0 if torch.cuda.is_available() else -1
             summarizer = pipeline('summarization', device=device)
-            sumario_em_ingles = summarizer(texto_em_ingles, max_length=50, min_length=25, do_sample=False)[0]['summary_text']
             
-            # Traduzir o sumário de volta para o português
+            # Configurar os parâmetros para gerar um sumário mais longo
+            max_length = int(request.form.get('max_length', 100))  # Padrão de 100 palavras, editável pelo usuário
+            min_length = int(request.form.get('min_length', 50))  # Padrão de 50 palavras, editável pelo usuário
+            
+            # Gerar um sumário em inglês com os parâmetros definidos
+            sumario_em_ingles = summarizer(texto_em_ingles, max_length=max_length, min_length=min_length, do_sample=False)[0]['summary_text']
+            
+            # Traduzir o sumário gerado de volta para o português
             sumario_em_portugues = GoogleTranslator(source='en', target='pt').translate(sumario_em_ingles)
             
-            # Armazenar o sumário no diário
+            # Armazenar o sumário no campo correspondente do diário
             diario.sumario = sumario_em_portugues
+            # Confirmar as alterações no banco de dados
             session_db.commit()
-            
-            # Obter o fk_Aluno_id antes de fechar a sessão
-            fk_aluno_id = diario.fk_Aluno_id
         else:
+            # Retornar uma mensagem de erro se o diário não for encontrado
             return "Diário de bordo não encontrado", 404
     except Exception as e:
+        # Reverter quaisquer mudanças no banco de dados em caso de erro
         session_db.rollback()
-        print(f"Erro ao sumarizar diário: {e}")  # Captura de erro mais detalhada
-        return f"Erro ao sumarizar diário: {e}", 500  # Inclui o erro na resposta
+        print(f"Erro ao sumarizar diário: {e}")  # Captura de erro detalhada para depuração
+        return f"Erro ao sumarizar diário: {e}", 500  # Inclui o erro na resposta para facilitar a análise
     finally:
+        # Fechar a sessão do banco de dados para liberar os recursos
         session_db.close()
 
-    return redirect(url_for('detalhe_aluno', ra=fk_aluno_id))
+    # Redirecionar para a página atual para recarregar e mostrar o campo atualizado do sumário
+    return redirect(request.referrer)
+
 
 
 
