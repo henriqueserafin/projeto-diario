@@ -8,6 +8,7 @@ from datetime import datetime
 import urllib.parse
 import speech_recognition as sr
 from textblob import TextBlob
+from deep_translator import GoogleTranslator
 from googletrans import Translator
 
 app = Flask(__name__)
@@ -236,37 +237,82 @@ def senia():
     
     return render_template("radio.html", mic_status=mic_status)
 
+
+
+
+# @app.route('/sumarizar_diario/<int:diario_id>', methods=['POST'])
+# def sumarizar_diario(diario_id):
+#     session_db = Session()  # Criar uma nova sessão
+#     try:
+#         # Recuperar o diário de bordo pelo ID
+#         diario = session_db.query(DiarioBordo).filter(DiarioBordo.id == diario_id).one_or_none()
+#         if diario:
+#             print(f"Texto do Diário: {diario.texto}")  # Verifica se o texto está sendo recuperado
+            
+#             # Traduzir e sumarizar aqui...
+#             # Traduzir o texto do diário para inglês usando deep-translator
+#             texto_em_ingles = GoogleTranslator(source='pt', target='en').translate(diario.texto)
+#             blob = TextBlob(texto_em_ingles)
+#             sumario_em_ingles = ' '.join([str(sent) for sent in blob.sentences[:3]])  # Pegando as 3 primeiras sentenças como resumo
+            
+#             # Traduzir o sumário de volta para o português
+#             sumario_em_portugues = GoogleTranslator(source='en', target='pt').translate(sumario_em_ingles)
+            
+#             # Armazenar o sumário no diário
+#             diario.sumario = sumario_em_portugues
+#             session_db.commit()
+#         else:
+#             return "Diário de bordo não encontrado", 404
+#     except Exception as e:
+#         session_db.rollback()
+#         print(f"Erro ao sumarizar diário: {e}")  # Captura de erro mais detalhada
+#         return f"Erro ao sumarizar diário: {e}", 500  # Inclui o erro na resposta
+#     finally:
+#         session_db.close()
+
+#     return redirect(url_for('detalhe_aluno', ra=diario.fk_Aluno_id))
+
+from transformers import pipeline
+import torch
+
 @app.route('/sumarizar_diario/<int:diario_id>', methods=['POST'])
 def sumarizar_diario(diario_id):
     session_db = Session()  # Criar uma nova sessão
-    translator = Translator()
     try:
         # Recuperar o diário de bordo pelo ID
         diario = session_db.query(DiarioBordo).filter(DiarioBordo.id == diario_id).one_or_none()
         if diario:
-            # Traduzir o texto do diário para inglês
-            texto_em_ingles = translator.translate(diario.texto, src='pt', dest='en').text
+            print(f"Texto do Diário: {diario.texto}")  # Verifica se o texto está sendo recuperado
             
-            # Sumarizar usando TextBlob (assumindo que o TextBlob funcione com textos em inglês)
-            blob = TextBlob(texto_em_ingles)
-            sumario_em_ingles = ' '.join([str(sent) for sent in blob.sentences[:3]])  # Pegando as 3 primeiras sentenças como resumo
+            # Traduzir e sumarizar aqui...
+            # Traduzir o texto do diário para inglês usando deep-translator
+            texto_em_ingles = GoogleTranslator(source='pt', target='en').translate(diario.texto)
+            
+            # Usar a biblioteca transformers para sumarizar o texto, verificando se a GPU está disponível
+            device = 0 if torch.cuda.is_available() else -1
+            summarizer = pipeline('summarization', device=device)
+            sumario_em_ingles = summarizer(texto_em_ingles, max_length=50, min_length=25, do_sample=False)[0]['summary_text']
             
             # Traduzir o sumário de volta para o português
-            sumario_em_portugues = translator.translate(sumario_em_ingles, src='en', dest='pt').text
+            sumario_em_portugues = GoogleTranslator(source='en', target='pt').translate(sumario_em_ingles)
             
             # Armazenar o sumário no diário
             diario.sumario = sumario_em_portugues
             session_db.commit()
+            
+            # Obter o fk_Aluno_id antes de fechar a sessão
+            fk_aluno_id = diario.fk_Aluno_id
         else:
             return "Diário de bordo não encontrado", 404
     except Exception as e:
         session_db.rollback()
-        print(f"Erro ao sumarizar diário: {e}")  # Captura de erro
-        return "Erro ao sumarizar diário", 500
+        print(f"Erro ao sumarizar diário: {e}")  # Captura de erro mais detalhada
+        return f"Erro ao sumarizar diário: {e}", 500  # Inclui o erro na resposta
     finally:
         session_db.close()
 
-    return redirect(url_for('detalhe_aluno', ra=diario.fk_Aluno_id))  # Redireciona para a página do aluno
+    return redirect(url_for('detalhe_aluno', ra=fk_aluno_id))
+
 
 
 
