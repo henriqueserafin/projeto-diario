@@ -22,6 +22,7 @@ host = 'localhost'
 database = 'schooltracker'
 connection_string = f'mysql+pymysql://{user}:{password}@{host}/{database}'
 
+#referenciar minha página com return redirect(request.referrer)
 # Criar a engine e refletir o banco de dados existente
 engine = create_engine(connection_string)
 metadata = MetaData()
@@ -192,6 +193,51 @@ def adicionar_diario(ra):
     finally:
         session_db.close()
 
+
+# Atualizar um diário de bordo
+@app.route('/editar_diario/<int:diario_id>', methods=['GET', 'POST'])
+def editar_diario(diario_id):
+    session_db = Session()  # Criar uma nova sessão
+    diario = session_db.query(DiarioBordo).filter(DiarioBordo.id == diario_id).one_or_none()
+    
+    if request.method == 'POST':
+        texto = request.form['texto']
+        try:
+            diario.texto = texto
+            session_db.commit()
+        except Exception as e:
+            session_db.rollback()
+            print(f"Erro ao atualizar diário: {e}")
+            return "Erro ao atualizar diário", 500
+        finally:
+            session_db.close()
+        
+        return redirect(url_for('detalhe_aluno', ra=diario.fk_Aluno_id))
+    
+    return render_template('editar_diario.html', diario=diario)
+
+# Excluir um diário de bordo
+@app.route('/excluir_diario/<int:diario_id>', methods=['POST'])
+def excluir_diario(diario_id):
+    session_db = Session()  # Criar uma nova sessão
+    try:
+        diario = session_db.query(DiarioBordo).filter(DiarioBordo.id == diario_id).one_or_none()
+        if diario:
+            session_db.delete(diario)
+            session_db.commit()
+        else:
+            return "Diário de bordo não encontrado", 404
+    except Exception as e:
+        session_db.rollback()
+        print(f"Erro ao excluir diário: {e}")
+        return "Erro ao excluir diário", 500
+    finally:
+        session_db.close()
+    
+    return redirect(url_for('detalhe_aluno', ra=diario.fk_Aluno_id))
+    
+
+
 @app.route('/aluno/<string:ra>', methods=['GET'])  # O RA é uma string
 def detalhe_aluno(ra):
     session_db = Session()  # Criar uma nova sessão
@@ -239,7 +285,7 @@ def senia():
 
 
 
-
+#text blob não parece funcionar bem para fazer resumos
 # @app.route('/sumarizar_diario/<int:diario_id>', methods=['POST'])
 # def sumarizar_diario(diario_id):
 #     session_db = Session()  # Criar uma nova sessão

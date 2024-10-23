@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Diário{% endblock %}
+
+{% block content %}
+<div class="container espacamento">
+    <div class="row justify-content-center align-items-center" style="margin-top: 8%; margin-bottom: 70px;">
+        <div class="col-md-10 caixa-forms">
+            <h2 class="text-center">Editar Diário</h2>
+            <form action="{{ url_for('editar_diario', diario_id=diario.id) }}" method="POST">
+                <div class="form-group">
+                    <label for="texto">Edite seu diário de bordo:</label>
+                    <textarea id="texto" name="texto" class="form-control" rows="5" required>{{ diario.texto }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-success btn-block">Salvar</button>
+            </form>
+            <br>
+            <div class="text-center">
+                <a href="{{ url_for('detalhe_aluno', ra=diario.fk_Aluno_id) }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

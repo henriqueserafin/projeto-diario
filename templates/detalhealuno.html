@@ -26,7 +26,13 @@
                             <strong>{{ diario.datahora.strftime('%d/%m/%Y %H:%M') }}</strong>: <br> {{ diario.texto }}
                             <form action="{{ url_for('sumarizar_diario', diario_id=diario.id) }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-primary btn-sm">Sumarizar</button>
-                            </form>                            
+                            </form>
+                            <form action="{{ url_for('editar_diario', diario_id=diario.id) }}" method="GET" style="display:inline;">
+                                <button type="submit" class="btn btn-warning btn-sm">Editar</button>
+                            </form>
+                            <form action="{{ url_for('excluir_diario', diario_id=diario.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                            </form>
                             {% if diario.sumario %}
                                 <br><strong>Sumário:</strong> {{ diario.sumario }}
                             {% endif %}
@@ -35,7 +41,7 @@
                 {% else %}
                     <li class="list-group-item">Nenhuma entrada registrada.</li>
                 {% endif %}
-            </ul>
+            </ul>            
             
 
             <br>
