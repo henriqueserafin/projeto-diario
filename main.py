@@ -7,9 +7,9 @@ from functools import wraps
 from datetime import datetime
 import urllib.parse
 import speech_recognition as sr
-from textblob import TextBlob
+# from textblob import TextBlob
 from deep_translator import GoogleTranslator
-from googletrans import Translator
+# from googletrans import Translator
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -17,7 +17,7 @@ app.secret_key = 'sua_chave_secreta'  # Defina uma chave secreta para usar a ses
 
 # Configuração do Banco de Dados
 user = 'root'
-password = urllib.parse.quote_plus('root')
+password = urllib.parse.quote_plus('senai@123')
 host = 'localhost'
 database = 'schooltracker'
 connection_string = f'mysql+pymysql://{user}:{password}@{host}/{database}'
